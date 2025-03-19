@@ -79,6 +79,10 @@ app.post("/shorten", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+    res.json({ message: "Servidor funcionando" });
+  });
+
 // Endpoint para redirigir a la URL original
 app.get("/:shortId", async (req, res) => {
   try {
