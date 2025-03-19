@@ -44,6 +44,8 @@ const Url = mongoose.model("Url", urlSchema);
 app.post("/shorten", async (req, res) => {
   try {
     const { originalUrl } = req.body;
+    console.log(originalUrl)
+
     if (!originalUrl) {
       return res.status(400).json({ error: "URL requerida" });
     }
