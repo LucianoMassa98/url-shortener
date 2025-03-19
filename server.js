@@ -1,8 +1,8 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const { nanoid } = require("nanoid");
-const cors = require("cors");
+import "dotenv/config";
+import express from "express";
+import mongoose from "mongoose";
+import { nanoid } from "nanoid";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
@@ -70,4 +70,3 @@ app.get("/:shortId", async (req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
-
