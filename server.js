@@ -18,10 +18,18 @@ const ErrorLog = mongoose.model("ErrorLog", errorSchema);
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+
+const corsOptions = {
+    origin: "*", // Permite solicitudes desde cualquier origen. Ajusta según tus necesidades.
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  };
+  
+  app.use(cors(corsOptions));
 
 // Configuración de morgan para loguear todas las peticiones HTTP
-app.use(morgan("combined")); // Registra todas las peticiones en formato combinado (detallado)
+app.use(morgan("combined"));
 
 // Conexión a MongoDB sin las opciones obsoletas
 mongoose.connect(process.env.MONGO_URI)
@@ -37,14 +45,13 @@ const urlSchema = new mongoose.Schema({
   originalUrl: String,
   createdAt: { type: Date, default: Date.now },
 });
-
 const Url = mongoose.model("Url", urlSchema);
+
 
 // Endpoint para acortar URLs
 app.post("/shorten", async (req, res) => {
   try {
     const { originalUrl } = req.body;
-    console.log(originalUrl)
 
     if (!originalUrl) {
       return res.status(400).json({ error: "URL requerida" });
