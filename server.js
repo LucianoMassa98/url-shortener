@@ -24,13 +24,13 @@ app.use(cors());
 app.use(morgan("combined")); // Registra todas las peticiones en formato combinado (detallado)
 
 // Conexión a MongoDB sin las opciones obsoletas
-mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB conectado"))
   .catch((err) => {
     console.error("Error de conexión a MongoDB:", err);
-    process.exit(1); // Cerrar el proceso si la conexión a la DB falla
+    process.exit(1); // Termina el proceso si la conexión falla
   });
+
 
 const urlSchema = new mongoose.Schema({
   shortId: String,
