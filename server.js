@@ -3,10 +3,25 @@ import express from "express";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 import cors from "cors";
+import morgan from "morgan";
+
+// Crear el modelo de errores para MongoDB
+const errorSchema = new mongoose.Schema({
+  message: String,
+  stack: String,
+  timestamp: { type: Date, default: Date.now },
+  method: String,
+  url: String,
+});
+
+const ErrorLog = mongoose.model("ErrorLog", errorSchema);
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Configuración de morgan para loguear todas las peticiones HTTP
+app.use(morgan("combined")); // Registra todas las peticiones en formato combinado (detallado)
 
 // Conexión a MongoDB sin las opciones obsoletas
 mongoose
@@ -25,14 +40,8 @@ const urlSchema = new mongoose.Schema({
 
 const Url = mongoose.model("Url", urlSchema);
 
-// Middleware para manejar errores no capturados
-app.use((err, req, res, next) => {
-  console.error("Error inesperado:", err);
-  res.status(500).json({ error: "Hubo un error inesperado en el servidor" });
-});
-
 // Endpoint para acortar URLs
-app.post("/shorten", async (req, res, next) => {
+app.post("/shorten", async (req, res) => {
   try {
     const { originalUrl } = req.body;
     if (!originalUrl) {
@@ -47,12 +56,22 @@ app.post("/shorten", async (req, res, next) => {
     res.json({ shortUrl: `${process.env.BASE_URL}/${shortId}` });
   } catch (err) {
     console.error("Error al acortar la URL:", err);
-    next(err); // Enviar el error al middleware de manejo de errores
+
+    // Guardar el error en MongoDB
+    const errorLog = new ErrorLog({
+      message: err.message,
+      stack: err.stack,
+      method: "POST",
+      url: "/shorten",
+    });
+    await errorLog.save(); // Guardar el error en la base de datos
+
+    res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
 // Endpoint para redirigir a la URL original
-app.get("/:shortId", async (req, res, next) => {
+app.get("/:shortId", async (req, res) => {
   try {
     const { shortId } = req.params;
     const urlEntry = await Url.findOne({ shortId });
@@ -64,7 +83,17 @@ app.get("/:shortId", async (req, res, next) => {
     res.redirect(urlEntry.originalUrl);
   } catch (err) {
     console.error("Error al redirigir la URL:", err);
-    next(err); // Enviar el error al middleware de manejo de errores
+
+    // Guardar el error en MongoDB
+    const errorLog = new ErrorLog({
+      message: err.message,
+      stack: err.stack,
+      method: "GET",
+      url: `/${req.params.shortId}`,
+    });
+    await errorLog.save(); // Guardar el error en la base de datos
+
+    res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
