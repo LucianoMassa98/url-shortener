@@ -29,7 +29,7 @@ const corsOptions = {
   app.use(cors(corsOptions));
 
 // Configuración de morgan para loguear todas las peticiones HTTP
-app.use(morgan("combined"));
+//app.use(morgan("combined"));
 
 // Conexión a MongoDB sin las opciones obsoletas
 mongoose.connect(process.env.MONGO_URI)
@@ -62,6 +62,11 @@ app.post("/shorten", async (req, res) => {
 
     await newUrl.save(); // Usar .save() en lugar de create para mejor control de excepciones
 
+    app.use((req, res, next) => {
+        console.log(`${req.method} ${req.url}`);
+        next();
+      });
+
     res.json({ shortUrl: `${process.env.BASE_URL}/${shortId}` });
   } catch (err) {
     console.error("Error al acortar la URL:", err);
@@ -78,6 +83,9 @@ app.post("/shorten", async (req, res) => {
     res.status(500).json({ error: "Error en el servidor" });
   }
 });
+
+
+
 
 app.get("/", (req, res) => {
     res.json({ message: "Servidor funcionando" });
